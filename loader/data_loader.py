@@ -13,7 +13,7 @@ from PIL import Image
 class Dataset(data.Dataset):
     def __init__(self, data_dir):
 
-        origin_dir = data_dir + 'origin/'
+        origin_dir = data_dir + 'original/'
         img_list = os.listdir(origin_dir)
         self.data_dir = data_dir
         self.img_list = img_list
@@ -22,10 +22,10 @@ class Dataset(data.Dataset):
         )
 
     def __getitem__(self, index):
-        origin_img = self.pil_loader(self.data_dir + 'origin/' + self.img_list[index])
+        origin_img = self.pil_loader(self.data_dir + 'original/' + self.img_list[index])
         hw_img = self.pil_loader(self.data_dir + 'handwriting/' + self.img_list[index])
-        pt_img = self.pil_loader(self.data_dir + 'origin/' + self.img_list[index])
-        return origin_img. hw_img, pt_img
+        pt_img = self.pil_loader(self.data_dir + 'printed/' + self.img_list[index])
+        return origin_img, hw_img, pt_img
 
     def pil_loader(self, path):
         with open(path, 'rb') as f:
@@ -35,7 +35,7 @@ class Dataset(data.Dataset):
             img = 255.0 - img
             img = (img - 127.5) / 127.5
             img = self.transform(img)
-            print(img.size())
+        return img
 
     def __len__(self):
         return len(self.img_list)

@@ -12,7 +12,7 @@ logger = logging.getLogger()
 parser = argparse.ArgumentParser()
 parser.add_argument('--n_epochs', type=int, default=50)
 parser.add_argument('--save_dir', type=str, default='saved/')
-parser.add_argument('--batch', type=int, default=64)
+parser.add_argument('--batch', type=int, default=8)
 parser.add_argument('--lr', type=float, default=0.0002)
 parser.add_argument('--checkpoint', type=str, default=None)
 

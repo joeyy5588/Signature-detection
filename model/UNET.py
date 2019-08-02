@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+use_ins_norm = False
 
 class double_conv(nn.Module):
     '''(conv => BN => ReLU) * 2'''

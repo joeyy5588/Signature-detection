@@ -1,11 +1,12 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import torch
 import numpy as np
 from .UNET import *
 
 class Generator(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
-        super(UNet, self).__init__()
+        super(Generator, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -43,30 +44,32 @@ class Generator(nn.Module):
         x = self.up1_3(x, x2)
         x = self.up1_4(x, x1)
         x = self.out1_c(x)
-        x = F.tanh(x)
+        x = torch.tanh(x)
         y = self.up2_1(x5, x4)
         y = self.up2_2(y, x3)
         y = self.up2_3(y, x2)
         y = self.up2_4(y, x1)
         y = self.out2_c(y)
-        y = F.tanh(y)
+        y = torch.tanh(y)
         return x, y
 
 class Discriminator(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
         super(Discriminator, self).__init__()
 
+        use_ins_norm = True
+
         self.model = nn.Sequential(
             nn.Conv2d(n_channels, 64, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=True),
-            nn.InstanceNorm2d(128),
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=use_ins_norm),
+            nn.BatchNorm2d(128),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=True),
-            nn.InstanceNorm2d(256),
+            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=use_ins_norm),
+            nn.BatchNorm2d(256),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=True),
-            nn.InstanceNorm2d(512),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=use_ins_norm),
+            nn.BatchNorm2d(512),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(512, n_classes, kernel_size=3, stride=1, padding=1),
         )
@@ -82,7 +85,6 @@ class Discriminator(nn.Module):
                     m.bias.data.zero_()
 
     def forward(self, img):
-        img_flat = img.view(img.size(0), -1)
-        validity = self.model(img_flat)
+        validity = self.model(img)
 
         return validity
