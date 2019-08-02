@@ -10,7 +10,7 @@ from torchvision.utils import save_image
 import matplotlib.pyplot as plt
 from PIL import Image
 
-class GGGANTrainer:    
+class SINGLEGANTrainer:    
     def __init__(self, gen, dis, dataloader, opt):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.opt = opt
@@ -100,13 +100,11 @@ class GGGANTrainer:
     def _train_dis(self, origin_img, hw_img, pt_img):
         self.dis_optimizer.zero_grad()
 
-        fake_hw, fake_pt = self.gen(origin_img)
+        fake_hw = self.gen(origin_img)
         fake_hw = fake_hw.detach()
-        fake_pt = fake_pt.detach()
-        fake_origin = fake_hw + fake_pt
 
-        fake_img = torch.cat((fake_hw, fake_pt, fake_origin))
-        real_img = torch.cat((hw_img, pt_img, origin_img))
+        fake_img = fake_hw
+        real_img = hw_img
         #print(fake_hw.size(), fake_img.size())
 
         real_predict = self.dis(real_img)
@@ -126,19 +124,17 @@ class GGGANTrainer:
     def _train_gen(self, origin_img, hw_img, pt_img):
         self.gen_optimizer.zero_grad()
 
-        fake_hw, fake_pt = self.gen(origin_img)
-        fake_origin = fake_hw + fake_pt
+        fake_hw = self.gen(origin_img)
 
-        fake_img = torch.cat((fake_hw, fake_pt, fake_origin))
+        fake_img = fake_hw
 
         fake_predict = self.dis(fake_img)
 
         gen_loss = self._GAN_loss(fake_predict, True)
         hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img)
-        pt_loss = self._RECONSTRUCT_loss(fake_pt, pt_img)
         #print(gen_loss, hw_loss, pt_loss)
 
-        loss_g = gen_loss + hw_loss + pt_loss
+        loss_g = gen_loss + hw_loss
 
         D_G_z2 = fake_predict.mean().item()
         loss_g.backward()
@@ -159,8 +155,12 @@ class GGGANTrainer:
     def _RECONSTRUCT_loss(self, gen_img, gt_img, loss_type="L1"):
         if loss_type != "L1":
             self.reconstruction_loss = nn.MSELoss()
+        thres = gt_img > -0.5
+        bg_loss = self.reconstruction_loss(gen_img[~thres], gt_img[~thres])
+        fg_loss = self.reconstruction_loss(gen_img[thres], gt_img[thres])
+        
 
-        return self.reconstruction_loss(gen_img, gt_img)
+        return (bg_loss + 5 * fg_loss)
 
     def _inference_testing(self):
         with torch.no_grad():

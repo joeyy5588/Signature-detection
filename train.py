@@ -1,6 +1,6 @@
 from loader import DataLoader
 from model import GGGAN
-from trainer import GGGANTrainer
+from trainer import GGGANTrainer, SINGLEGANTrainer
 from utils import ensure_dir
 import logging
 import argparse
@@ -24,5 +24,5 @@ if __name__ == '__main__':
     D = DataLoader(data_dir = 'data/', batch_size = opt.batch, shuffle = True, validation_split = 0.0)
     GEN = GGGAN.Generator()
     DIS = GGGAN.Discriminator()
-    T = GGGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
+    T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
     T.train()

@@ -45,13 +45,15 @@ class Generator(nn.Module):
         x = self.up1_4(x, x1)
         x = self.out1_c(x)
         x = torch.tanh(x)
+        '''
         y = self.up2_1(x5, x4)
         y = self.up2_2(y, x3)
         y = self.up2_3(y, x2)
         y = self.up2_4(y, x1)
         y = self.out2_c(y)
         y = torch.tanh(y)
-        return x, y
+        '''
+        return x
 
 class Discriminator(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
