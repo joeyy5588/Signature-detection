@@ -39,7 +39,7 @@ def rotation(degree, img):
 
 def sample_sen(lst, bg, degree):
     bg_sz = bg.size
-    sen_w = bg.size[0] // 10
+    sen_w = bg.size[0] // 2
     T = 1500
     x, y = 0, 0
     while x < 1500 or x > 1900:
@@ -51,7 +51,7 @@ def sample_sen(lst, bg, degree):
  
 def sample_word(lst, bg, degree):
     bg_sz = bg.size
-    sen_w = bg.size[0] // 7
+    sen_w = bg.size[0] // 11
     T = 50
     x, y = 0, 0
     while x < 50 or x > 90:
@@ -115,6 +115,47 @@ def paste_img(sen, word, img):
 
     return original, white_bg, anno
 
+def re_scale(original, handwriting, printed):
+    #target_sz = (960, 1280)
+    X, Y = 480, 640
+    target_sz = (X, Y)
+    input_sz = original.size
+
+    # printed = copy.copy(tmp_printed)
+
+    if input_sz[0] > input_sz[1]:
+        printed = printed.transpose(Image.ROTATE_90)
+        original = original.transpose(Image.ROTATE_90)
+        handwriting = handwriting.transpose(Image.ROTATE_90)
+
+
+    new_original = Image.new('L', target_sz, 255)
+    new_printed = Image.new('L', target_sz, 255)
+    new_handwriting = Image.new('L', target_sz, 255)
+
+    if input_sz[0] / input_sz[1] <= 0.75:
+        new_sz = (int(input_sz[0]/input_sz[1]*Y), Y)
+        original = original.resize(new_sz)
+        printed = printed.resize(new_sz)
+        handwriting = handwriting.resize(new_sz)
+
+        new_original.paste(original, ((X-new_sz[0])//2, 0))
+        new_printed.paste(printed, ((X-new_sz[0])//2, 0))
+        new_handwriting.paste(handwriting, ((X-new_sz[0])//2, 0))
+    else:
+        new_sz = (X, int(input_sz[1]/input_sz[0]*X))
+        original = original.resize(new_sz)
+        printed = printed.resize(new_sz)
+        handwriting = handwriting.resize(new_sz)
+
+        new_original.paste(original, (0, (Y-new_sz[1])//2))
+        new_printed.paste(printed, (0, (Y-new_sz[1])//2))
+        new_handwriting.paste(handwriting, (0, (Y-new_sz[1])//2) )
+
+    assert new_original.size == target_sz
+
+    return new_original, new_printed, new_handwriting
+
 if __name__ == "__main__":
     src_dir = "english_form"
     dst_dir = "XDD"
@@ -144,14 +185,18 @@ if __name__ == "__main__":
             word = sample_word(word_files, img_tmp, word_degree)
             # generate original, handwriting, annotation
             original, handwriting, anno = paste_img(sen, word, img_tmp)
+            #print (original.size)
+            #continue
+            original, handwriting, printed = re_scale(original, handwriting, printed)
             # save to file
-            newfname = f'data{count}.png'
+            newfname = f'data_{count}.png'
             original.save(os.path.join(original_dst, newfname))
             handwriting.save(os.path.join(handwriting_dst, newfname))
             printed.save(os.path.join(printed_dst, newfname))
             annotation[newfname] = anno
-    with open(os.path.join(annotation_dst, "data.pkl"), "wb") as f:
-        pickle.dump(annotation, f)
+            count += 1
+#    with open(os.path.join(annotation_dst, "data.pkl"), "wb") as f:
+#        pickle.dump(annotation, f)
 #resize_bg(src_dir, dst_dir)
 #word_root = '/var/ctc6nlp/datarecibo/iam_dataset/www.fki.inf.unibe.ch/DBs/iamDB/data/words/'   
 #sentence_root = '/var/ctc6nlp/datarecibo/iam_dataset/www.fki.inf.unibe.ch/DBs/iamDB/data/sentences/'   
