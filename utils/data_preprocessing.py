@@ -99,8 +99,8 @@ def paste_img(sen, word, img):
             #print (f'word : ({x1}, {y1}), size = {word.size}')
             #input()
         if not (x2+sen.size[0] > x or y2+sen.size[1] > y or x1+word.size[0] > x or y1+word.size[1] > y):
-            if img.getpixel((x1, y1)) > 200 and img.getpixel((x2, y2)) > 200:
-                break
+            #if img.getpixel((x1, y1)) > 200 and img.getpixel((x2, y2)) > 200:
+            break
     #print ("Out")
     # generate files
     original = mask_paste(img, word, x1, y1)
@@ -115,13 +115,13 @@ def paste_img(sen, word, img):
 
     return original, white_bg, anno
 
-def re_scale(original, handwriting, printed):
+def re_scale(original, handwriting, tmp_printed):
     #target_sz = (960, 1280)
     X, Y = 480, 640
     target_sz = (X, Y)
     input_sz = original.size
 
-    # printed = copy.copy(tmp_printed)
+    printed = copy.deepcopy(tmp_printed)
 
     if input_sz[0] > input_sz[1]:
         printed = printed.transpose(Image.ROTATE_90)
@@ -154,30 +154,40 @@ def re_scale(original, handwriting, printed):
 
     assert new_original.size == target_sz
 
-    return new_original, new_printed, new_handwriting
+    return new_original, new_handwriting, new_printed
 
 if __name__ == "__main__":
     src_dir = "english_form"
     dst_dir = "XDD"
     # destination
-    handwriting_dst = "Signature-detection/data/handwriting"
-    annotation_dst = "Signature-detection/data/anns"
-    original_dst = "Signature-detection/data/original"
-    printed_dst = "Signature-detection/data/printed"
+    #handwriting_dst = "Signature-detection/data/handwriting"
+    #annotation_dst = "Signature-detection/data/anns"
+    #original_dst = "Signature-detection/data/original"
+    #printed_dst = "Signature-detection/data/printed"
+
+
+    handwriting_dst = "Signature-detection/test/handwriting"
+    annotation_dst = "Signature-detection/test/anns"
+    original_dst = "Signature-detection/test/original"
+    printed_dst = "Signature-detection/test/printed"
+ 
+
     # load file lists
     sentence_files = read_list('sentence_list.txt')
     num_of_sentence = len(sentence_files)
     word_files = read_list('word_list.txt')
     num_of_word = len(word_files)
     annotation = {}
-    data = os.listdir(src_dir)     
+    #data = os.listdir(src_dir)     
     count = 0
 
 
+    data = read_list('data_list.txt')     
     for fname in tqdm(data):
-        printed = Image.open(os.path.join(src_dir, fname))
+        form = Image.open(os.path.join(fname))
         for i in range(20):
-            img_tmp = copy.copy(printed)
+            img_tmp = copy.deepcopy(form)
+            img_tmp_2 = copy.deepcopy(form)
             # generate word and sentence
             word_degree = random.uniform(-10, 10)
             sen_degree = random.uniform(-10, 10)
@@ -187,7 +197,7 @@ if __name__ == "__main__":
             original, handwriting, anno = paste_img(sen, word, img_tmp)
             #print (original.size)
             #continue
-            original, handwriting, printed = re_scale(original, handwriting, printed)
+            original, handwriting, printed = re_scale(original, handwriting, img_tmp_2)
             # save to file
             newfname = f'data_{count}.png'
             original.save(os.path.join(original_dst, newfname))
