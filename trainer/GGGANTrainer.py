@@ -10,7 +10,7 @@ from torchvision.utils import save_image
 import matplotlib.pyplot as plt
 from PIL import Image
 
-class SINGLEGANTrainer:    
+class GGGANTrainer:    
     def __init__(self, gen, dis, dataloader, opt):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.opt = opt
