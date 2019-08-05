@@ -133,7 +133,7 @@ class SINGLEGANTrainer:
         fake_predict = self.dis(fake_img)
 
         gen_loss = self._GAN_loss(fake_predict, True)
-        hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img)
+        hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img, pt_img)
         #print(gen_loss, hw_loss, pt_loss)
 
         loss_g = gen_loss + hw_loss
@@ -154,13 +154,14 @@ class SINGLEGANTrainer:
 
         return self.gan_loss(pred, target)
 
-    def _RECONSTRUCT_loss(self, gen_img, gt_img, loss_type="L1"):
+    def _RECONSTRUCT_loss(self, gen_img, gt_img, pt_img, loss_type="L1"):
         if loss_type != "L1":
             self.reconstruction_loss = nn.MSELoss()
         thres = gt_img > -0.5
-        bg_loss = self.reconstruction_loss(gen_img[~thres], gt_img[~thres])
+        pt_thresh = pt_img > -0.5
+        bg_loss = self.reconstruction_loss(gen_img[pt_thresh], gt_img[pt_thresh])
         fg_loss = self.reconstruction_loss(gen_img[thres], gt_img[thres])
-        
+                
 
         return (bg_loss + 5 * fg_loss)
 
