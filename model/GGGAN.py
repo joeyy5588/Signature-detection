@@ -17,12 +17,6 @@ class Generator(nn.Module):
         self.up1_3 = up(256, 64)
         self.up1_4 = up(128, 64)
         self.out1_c = outconv(64, n_classes)
-        self.up2_1 = up(1024, 256)
-        self.up2_2 = up(512, 128)
-        self.up2_3 = up(256, 64)
-        self.up2_4 = up(128, 64)
-        self.out2_c = outconv(64, n_classes)
-
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
                 m.weight.data.normal_(0.0, 0.02)
@@ -45,14 +39,6 @@ class Generator(nn.Module):
         x = self.up1_4(x, x1)
         x = self.out1_c(x)
         x = torch.tanh(x)
-        '''
-        y = self.up2_1(x5, x4)
-        y = self.up2_2(y, x3)
-        y = self.up2_3(y, x2)
-        y = self.up2_4(y, x1)
-        y = self.out2_c(y)
-        y = torch.tanh(y)
-        '''
         return x
 
 class Discriminator(nn.Module):

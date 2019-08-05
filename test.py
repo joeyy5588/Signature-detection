@@ -14,11 +14,11 @@ opt = parser.parse_args()
 ensure_dir(opt.save_dir) 
 
 if __name__ == '__main__':
-    model = GGGAN
     test_dir = "test/original/"
     
-    G = model.Generator()
+    G = GGGAN.Generator()
     g_state_dict = torch.load(opt.checkpoint)['gen_state_dict']
+    print(g_state_dict)
     G.load_state_dict(g_state_dict)
 
     n_gpu = torch.cuda.device_count()
