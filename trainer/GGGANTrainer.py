@@ -54,6 +54,8 @@ class SINGLEGANTrainer:
                     'log': all_log,
                     'gen_state_dict': self.gen.module.state_dict(),
                     'dis_state_dict': self.dis.module.state_dict(),
+                    'gen_optimizer': self.gen_optimizer.state_dict(),
+                    'dis_optimizer': self.dis_optimizer.state_dict()
                 }
 
                 check_path = os.path.join(opt.save_dir, 'checkpoint_double_' + str(i+1) + '.pth')
@@ -199,7 +201,10 @@ class SINGLEGANTrainer:
         if path == None: return
         try:
             checkpoint = torch.load(path)
-            self.model.load_state_dict(checkpoint['state_dict'])
+            self.gen.load_state_dict(checkpoint['gen_state_dict'])
+            self.dis.load_state_dict(checkpoint['dis_state_dict'])
+            self.gen_optimizer.load_state_dict(checkpoint['gen_optimizer'])
+            self.dis_optimizer.load_state_dict(checkpoint['dis_optimizer'])
             self.begin_epoch = checkpoint['log'][-1]['epoch'] + 1
             self.all_log = checkpoint['log']
         except:

@@ -54,6 +54,8 @@ class SINGLEGANTrainer:
                     'log': all_log,
                     'gen_state_dict': self.gen.module.state_dict(),
                     'dis_state_dict': self.dis.module.state_dict(),
+                    'gen_optimizer': self.gen_optimizer.state_dict(),
+                    'dis_optimizer': self.dis_optimizer.state_dict()
                 }
 
                 check_path = os.path.join(opt.save_dir, 'checkpoint_' + str(i+1) + '.pth')
@@ -161,7 +163,7 @@ class SINGLEGANTrainer:
         pt_thresh = pt_img > -0.5
         bg_loss = self.reconstruction_loss(gen_img[pt_thresh], gt_img[pt_thresh])
         fg_loss = self.reconstruction_loss(gen_img[thres], gt_img[thres])
-                
+
 
         return (bg_loss + 5 * fg_loss)
 
