@@ -6,16 +6,26 @@ use_ins_norm = False
 
 class double_conv(nn.Module):
     '''(conv => BN => ReLU) * 2'''
-    def __init__(self, in_ch, out_ch):
+    def __init__(self, in_ch, out_ch, down=False):
         super(double_conv, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
-            nn.ReLU(inplace=True)
-        )
+        if not down:
+            self.conv = nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, 3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_ch, out_ch, 3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            self.conv = nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, 3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.LeakyReLU(0.2, inplace=True),
+                nn.Conv2d(out_ch, out_ch, 3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
 
     def forward(self, x):
         x = self.conv(x)
@@ -25,7 +35,7 @@ class double_conv(nn.Module):
 class inconv(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(inconv, self).__init__()
-        self.conv = double_conv(in_ch, out_ch)
+        self.conv = double_conv(in_ch, out_ch, True)
 
     def forward(self, x):
         x = self.conv(x)
@@ -37,7 +47,7 @@ class down(nn.Module):
         super(down, self).__init__()
         self.mpconv = nn.Sequential(
             nn.MaxPool2d(2),
-            double_conv(in_ch, out_ch)
+            double_conv(in_ch, out_ch, True)
         )
 
     def forward(self, x):

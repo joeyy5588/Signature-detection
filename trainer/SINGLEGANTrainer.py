@@ -49,14 +49,16 @@ class SINGLEGANTrainer:
             log = self._train_epoch(i)
             merged_log = {**log}
             all_log.append(merged_log)
-            checkpoint = {
-                'log': all_log,
-                'gen_state_dict': self.gen.state_dict(),
-                'dis_state_dict': self.dis.state_dict(),
-            }
             if (i + 1)%5 == 0:
+                checkpoint = {
+                    'log': all_log,
+                    'gen_state_dict': self.gen.module.state_dict(),
+                    'dis_state_dict': self.dis.module.state_dict(),
+                }
+
                 check_path = os.path.join(opt.save_dir, 'checkpoint_' + str(i+1) + '.pth')
                 torch.save(checkpoint, check_path)
+                print("SAVING CHECKPOINT:", check_path)
 
     def _train_epoch(self, epoch):
         self.gen.train()
