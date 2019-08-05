@@ -69,8 +69,8 @@ class SINGLEGANTrainer:
         for batch_idx, (origin_img, hw_img, pt_img)  in enumerate(self.dataloader):
 
             #Train Discriminator
-            for p in self.dis.parameters():
-                p.data.clamp_(-0.01, 0.01)
+            #for p in self.dis.parameters():
+            #    p.data.clamp_(-0.01, 0.01)
 
             origin_img = origin_img.to(self.device)
             hw_img = hw_img.to(self.device)

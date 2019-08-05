@@ -22,10 +22,10 @@ class Generator(nn.Module):
                 m.weight.data.normal_(0.0, 0.02)
                 if m.bias is not None:
                     m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.normal_(1.0, 0.02)
-                if m.bias is not None:
-                    m.bias.data.zero_()
+            #elif isinstance(m, nn.utils.spectral_norm):
+            #    m.weight.data.normal_(1.0, 0.02)
+            #    if m.bias is not None:
+            #        m.bias.data.zero_()
 
     def forward(self, x):
         x1 = self.inc(x)
@@ -50,14 +50,11 @@ class Discriminator(nn.Module):
         self.model = nn.Sequential(
             nn.Conv2d(n_channels, 64, kernel_size=3, stride=2, padding=1),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=use_ins_norm),
-            nn.BatchNorm2d(128),
+            nn.utils.spectral_norm(nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1, bias=use_ins_norm)),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=use_ins_norm),
-            nn.BatchNorm2d(256),
+            nn.utils.spectral_norm(nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1, bias=use_ins_norm)),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=use_ins_norm),
-            nn.BatchNorm2d(512),
+            nn.utils.spectral_norm(nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=1, bias=use_ins_norm)),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(512, n_classes, kernel_size=3, stride=1, padding=1),
         )
@@ -67,10 +64,10 @@ class Discriminator(nn.Module):
                 m.weight.data.normal_(0.0, 0.02)
                 if m.bias is not None:
                     m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.normal_(1.0, 0.02)
-                if m.bias is not None:
-                    m.bias.data.zero_()
+            #elif isinstance(m, nn.utils.spectral_norm):
+            #    m.weight.data.normal_(1.0, 0.02)
+            #    if m.bias is not None:
+            #        m.bias.data.zero_()
 
     def forward(self, img):
         validity = self.model(img)
