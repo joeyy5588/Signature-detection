@@ -19,7 +19,6 @@ class SINGLEGANTrainer:
         self.batch_size = dataloader.batch_size
         self.device = self._prepare_gpu()
         self.gen = gen
-        self.eval_gen = gen
         self.dis = dis
         self.gen_iter = 1
         self.dis_iter = 1
@@ -115,8 +114,6 @@ class SINGLEGANTrainer:
         real_predict = self.dis(real_img)
         fake_predict = self.dis(fake_img)
 
-        print(real_predict.size())
-
         real_loss = self._GAN_loss(real_predict, True)
         fake_loss = self._GAN_loss(fake_predict, False)
         D_x = real_predict.mean().item()
@@ -139,11 +136,9 @@ class SINGLEGANTrainer:
 
         gen_loss = self._GAN_loss(fake_predict, True)
         hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img, pt_img)
-        feature_loss = self.eval_gen.feature_loss(origin_img, hw_img, pt_img)
-        print(feature_loss)
-        #print(gen_loss, hw_loss, pt_loss)
+        print(gen_loss.item(), hw_loss.item())
 
-        loss_g = gen_loss + hw_loss + feature_loss
+        loss_g = gen_loss + hw_loss
 
         D_G_z2 = fake_predict.mean().item()
         loss_g.backward()

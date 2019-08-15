@@ -1,5 +1,5 @@
 from loader import DataLoader
-from model import GGGAN, GGGGAN
+from model import GGGAN, GGGGAN, SNDIS
 from trainer import GGGANTrainer, SINGLEGANTrainer
 from utils import ensure_dir
 import logging
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     D = DataLoader(data_dir = 'data/', batch_size = opt.batch, shuffle = True, validation_split = 0.0)
     if opt.decoder == 1:
         GEN = GGGAN.Generator()
-        DIS = GGGAN.Discriminator()
+        DIS = SNDIS.SNDiscriminator()
         T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
         T.train()
     else:
