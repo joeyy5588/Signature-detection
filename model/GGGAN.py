@@ -41,6 +41,33 @@ class Generator(nn.Module):
         x = torch.tanh(x)
         return x
 
+    def feature_loss(self, ori, hw, pt):
+        ori = self.inc(ori)
+        ori = self.down1(ori)
+        ori = self.down2(ori)
+        ori = self.down3(ori)
+        ori = self.down4(ori)
+        hw = self.inc(hw)
+        hw = self.down1(hw)
+        hw = self.down2(hw)
+        hw = self.down3(hw)
+        hw = self.down4(hw)
+        pt = self.inc(pt)
+        pt = self.down1(pt)
+        pt = self.down2(pt)
+        pt = self.down3(pt)
+        pt = self.down4(pt)
+
+        fake_f = hw + pt
+        fake_f = fake_f.view(-1)
+        real_f = ori.view(-1)
+
+        print(real_f.size(), fake_f.size())
+
+        f_loss = ((fake_f - real_f) ** 2) / real_f.size(0)
+
+        return f_loss.sum()
+
 class Discriminator(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
         super(Discriminator, self).__init__()

@@ -15,7 +15,7 @@ parser.add_argument('--save_dir', type=str, default='saved/')
 parser.add_argument('--batch', type=int, default=8)
 parser.add_argument('--lr', type=float, default=0.0002)
 parser.add_argument('--checkpoint', type=str, default=None)
-parser.add_argument('--decoder', type=int, help='multi-thread', default=1)
+parser.add_argument('--decoder', type=int, help='num of decoder', default=1)
 
 
 opt = parser.parse_args()
