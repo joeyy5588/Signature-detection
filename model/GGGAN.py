@@ -12,10 +12,11 @@ class Generator(nn.Module):
         self.down2 = down(128, 256)
         self.down3 = down(256, 512)
         self.down4 = down(512, 512)
-        self.up1_1 = up(1024, 256)
-        self.up1_2 = up(512, 128)
-        self.up1_3 = up(256, 64)
-        self.up1_4 = up(128, 64)
+        self.down5 = down(512, 512)
+        self.up1_1 = up(1024, 256, False)
+        self.up1_2 = up(512, 128, False)
+        self.up1_3 = up(256, 64, False)
+        self.up1_4 = up(128, 64, False)
         self.out1_c = outconv(64, n_classes)
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -33,6 +34,7 @@ class Generator(nn.Module):
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)
+        x5 = self.down5(x5)
         x = self.up1_1(x5, x4)
         x = self.up1_2(x, x3)
         x = self.up1_3(x, x2)
@@ -69,7 +71,7 @@ class Generator(nn.Module):
         return f_loss.sum()
 
 class Discriminator(nn.Module):
-    def __init__(self, n_channels=1, n_classes=1):
+    def __init__(self, n_channels=2, n_classes=1):
         super(Discriminator, self).__init__()
 
         use_ins_norm = True

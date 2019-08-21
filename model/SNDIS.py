@@ -63,7 +63,7 @@ class SNResDiscriminator(nn.Module):
         self.fc = nn.Sequential(SNLinear(ndf*16, 1))
     def make_model(self, ndf, ndlayers):
         model = []
-        model += [OptimizedBlock(1, ndf)]
+        model += [OptimizedBlock(2, ndf)]
         tndf = ndf
         for i in range(ndlayers):
             model += [ResBlock(tndf, tndf*2, downsample=True)]
@@ -77,7 +77,7 @@ class SNResDiscriminator(nn.Module):
         return self.fc(out)
 
 class SNDiscriminator(nn.Module):
-    def __init__(self, nc=1, ndf=64):
+    def __init__(self, nc=2, ndf=64):
         super(SNDiscriminator, self).__init__()
 
         self.main = nn.Sequential(
