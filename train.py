@@ -10,7 +10,7 @@ logging.basicConfig(handlers = handlers, level=logging.INFO, format='')
 logger = logging.getLogger()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--n_epochs', type=int, default=50)
+parser.add_argument('--n_epochs', type=int, default=100)
 parser.add_argument('--save_dir', type=str, default='saved/')
 parser.add_argument('--batch', type=int, default=8)
 parser.add_argument('--lr', type=float, default=0.0002)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     elif opt.mode == "GAN":
         if opt.decoder == 1:
             GEN = ResDense.RDN()
-            DIS = SNDIS.SNResDiscriminator()
+            DIS = ResDense.RDNDiscriminator()
             T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
             T.train()
         else:

@@ -92,10 +92,16 @@ class RDN(nn.Module):
             nn.Tanh()
         )
 
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+                m.weight.data.normal_(0.0, 0.02)
+                if m.bias is not None:
+                    m.bias.data.zero_()
 
     def forward(self, x):
-        F_1 = self.inconv(x)
-        x  = self.downconv(F_1)
+        x = self.inconv(x)
+        x = self.downconv(x)
+        F_1 = x
 
         RDBs_out = []
         for i in range(self.D):
@@ -109,10 +115,45 @@ class RDN(nn.Module):
         ###  Pending: Global feature fusion  ###
 
         ########################################
-        # x += f__1
 
         x = self.upconv(x)
 
         x = self.outconv(x)
 
         return x
+
+
+class RDNDiscriminator(nn.Module):
+    def __init__(self, n_channels=2, n_classes=1):
+        super(RDNDiscriminator, self).__init__()
+
+        use_ins_norm = True
+
+        self.model = nn.Sequential(
+            nn.Conv2d(n_channels, 64, kernel_size=4, stride=2, padding=1),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=use_ins_norm)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=use_ins_norm)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(256, 256, kernel_size=4, stride=2, padding=1, bias=use_ins_norm)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(256, 512, kernel_size=4, stride=1, padding=1, bias=use_ins_norm)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(512, n_classes, kernel_size=3, stride=1, padding=1),
+        )
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                m.weight.data.normal_(0.0, 0.02)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            #elif isinstance(m, nn.utils.spectral_norm):
+            #    m.weight.data.normal_(1.0, 0.02)
+            #    if m.bias is not None:
+            #        m.bias.data.zero_()
+
+    def forward(self, img):
+        validity = self.model(img)
+
+        return validity

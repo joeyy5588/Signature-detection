@@ -31,7 +31,7 @@ class SINGLEGANTrainer:
         self.test_dir = 'test/original/'
         self.begin_epoch = 0
         self.all_log = []
-        self._resume_unet_checkpoint(opt.checkpoint)
+        self._resume_checkpoint(opt.checkpoint)
 
     def train(self):
         opt = self.opt
@@ -165,7 +165,7 @@ class SINGLEGANTrainer:
         fg_loss = self.reconstruction_loss(gen_img[thres], gt_img[thres])
 
 
-        return (bg_loss + fg_loss) 
+        return (bg_loss + fg_loss * 10) 
 
     def _inference_testing(self):
         with torch.no_grad():
