@@ -13,7 +13,7 @@ from PIL import Image
 class Dataset(data.Dataset):
     def __init__(self, data_dir):
 
-        origin_dir = data_dir + 'original/'
+        origin_dir = data_dir + 'mixed/'
         img_list = os.listdir(origin_dir)
         self.data_dir = data_dir
         self.img_list = img_list
@@ -22,9 +22,9 @@ class Dataset(data.Dataset):
         )
 
     def __getitem__(self, index):
-        origin_img = self.pil_loader(self.data_dir + 'original/' + self.img_list[index])
-        hw_img = self.pil_loader(self.data_dir + 'handwriting/' + self.img_list[index])
-        pt_img = self.pil_loader(self.data_dir + 'printed/' + self.img_list[index])
+        origin_img = self.pil_loader(self.data_dir + 'mixed/' + self.img_list[index])
+        hw_img = self.pil_loader(self.data_dir + 'handwritten/' + self.img_list[index])
+        pt_img = self.pil_loader(self.data_dir + 'form/' + self.img_list[index])
         return origin_img, hw_img, pt_img
 
     def pil_loader(self, path):
