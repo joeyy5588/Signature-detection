@@ -24,7 +24,7 @@ ensure_dir(opt.save_dir)
 
 if __name__ == '__main__':
     # Remember to set pretrain False when there is no pretrained lang model
-    D = DataLoader(data_dir = 'data/', batch_size = opt.batch, shuffle = True, validation_split = 0.0)
+    D = DataLoader(data_dir = 'data/', batch_size = opt.batch, shuffle = True, validation_split = 0.2)
     if opt.mode == "CNN":
         GEN = GGGAN.Generator()
         T = UNETTrainer(gen = GEN, dataloader = D, opt = opt)
@@ -32,8 +32,8 @@ if __name__ == '__main__':
 
     elif opt.mode == "GAN":
         if opt.decoder == 1:
-            GEN = ResDense.RDN()
-            DIS = ResDense.RDNDiscriminator()
+            GEN = GGGAN.Generator()
+            DIS = GGGAN.Discriminator()
             T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
             T.train()
         else:
