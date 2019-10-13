@@ -31,6 +31,7 @@ class Dataset(data.Dataset):
         with open(path, 'rb') as f:
             img = Image.open(f)
             img = img.convert('L')
+            img = img.resize((850, 1100), Image.ANTIALIAS)
             img = np.array(img).astype(np.float32)
             img = 255.0 - img
             img = (img - 127.5) / 127.5

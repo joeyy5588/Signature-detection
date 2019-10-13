@@ -54,7 +54,7 @@ class Discriminator(nn.Module):
         self.conv4 = nn.Sequential(
             nn.utils.spectral_norm(nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1)),
             nn.LeakyReLU(0.2, inplace=True)
-        }
+        )
         self.attn2 = Self_Attn(512, 'relu')
         self.conv5 = nn.Conv2d(512, n_classes, kernel_size=4, stride=2, padding=1)
 

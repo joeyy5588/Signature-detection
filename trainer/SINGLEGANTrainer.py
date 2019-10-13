@@ -40,10 +40,10 @@ class SINGLEGANTrainer:
         self.dis.to(self.device)
         self.gen = nn.DataParallel(self.gen)
         self.dis = nn.DataParallel(self.dis)
-        self.logger.info('[GEN_STRUCTURE]')
-        self.logger.info(self.gen)
-        self.logger.info('[DIS_STRUCTURE]')
-        self.logger.info(self.dis)
+        # self.logger.info('[GEN_STRUCTURE]')
+        # self.logger.info(self.gen)
+        # self.logger.info('[DIS_STRUCTURE]')
+        # self.logger.info(self.dis)
 
         for i in range(self.begin_epoch, self.begin_epoch + self.n_epochs):
             log = self._train_epoch(i)
