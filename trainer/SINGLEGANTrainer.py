@@ -28,7 +28,7 @@ class SINGLEGANTrainer:
         self.gan_loss = nn.BCEWithLogitsLoss()
         self.real_label = 1
         self.fake_label = 0
-        self.test_dir = 'test/original/'
+        self.test_dir = 'data/mixed/'
         self.begin_epoch = 0
         self.all_log = []
         self._resume_checkpoint(opt.checkpoint)
@@ -189,6 +189,12 @@ class SINGLEGANTrainer:
                 new_path = 'saved/img/_rm_' + testing_list[i]
                 plt.imsave(new_path, img, cmap='gray')
 
+    def validation(self):
+        with torch.no_grad():
+            for batch_idx, (origin_img, hw_img, pt_img)  in enumerate(self.dataloader.split_validation()):
+                img = self.gen(img)
+                hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img, pt_img)
+                print(hw_loss.shape, hw_loss)
 
     def _prepare_gpu(self):
         n_gpu = torch.cuda.device_count()

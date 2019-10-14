@@ -107,7 +107,7 @@ class Discriminatorv2(nn.Module):
     def forward(self, syn_img, origin_img):
         syn_out = self.model(syn_img)
         origin_out = self.model(origin_img)
-        out, p1 = self.attn1(syn_img, origin_img)
+        out, p1 = self.attn1(syn_out, origin_out)
         out = self.conv5(out)
         print(out.size())
 
