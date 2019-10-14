@@ -39,7 +39,7 @@ class Generator(nn.Module):
         return x, p1, p2, p3, p4
 
 class Discriminator(nn.Module):
-    def __init__(self, n_channels=1, n_classes=1):
+    def __init__(self, n_channels=2, n_classes=1):
         super(Discriminator, self).__init__()
 
         self.model = nn.Sequential(
@@ -76,6 +76,42 @@ class Discriminator(nn.Module):
         out = self.conv5(out)
 
         return out.squeeze(), p1, p2
+
+class Discriminatorv2(nn.Module):
+    def __init__(self, n_channels=1, n_classes=1):
+        super(Discriminator, self).__init__()
+
+        self.model = nn.Sequential(
+            nn.utils.spectral_norm(nn.Conv2d(n_channels, 64, kernel_size=4, stride=2, padding=1)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1)),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.utils.spectral_norm(nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1)),
+            nn.LeakyReLU(0.2, inplace=True)
+        )
+        self.attn1 = Self_Attn(512, 'relu')
+        self.conv5 = nn.Conv2d(512, n_classes, kernel_size=4, stride=2, padding=1)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                m.weight.data.normal_(0.0, 0.02)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            #elif isinstance(m, nn.utils.spectral_norm):
+            #    m.weight.data.normal_(1.0, 0.02)
+            #    if m.bias is not None:
+            #        m.bias.data.zero_()
+
+    def forward(self, syn_img, origin_img):
+        syn_out = self.model(syn_img)
+        origin_out = self.model(origin_img)
+        out, p1 = self.attn1(syn_img, origin_img)
+        out = self.conv5(out)
+        print(out.size())
+
+        return out.squeeze(), p1
         
 
 class Self_Attn(nn.Module):

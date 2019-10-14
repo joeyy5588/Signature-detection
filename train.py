@@ -1,5 +1,5 @@
 from loader import DataLoader
-from model import GGGAN, GGGGAN, SNDIS, ResDense
+from model import GGGAN, GGGGAN, SNDIS, ResDense, AttnUNET
 from trainer import GGGANTrainer, SINGLEGANTrainer, UNETTrainer
 from utils import ensure_dir
 import logging
@@ -32,8 +32,8 @@ if __name__ == '__main__':
 
     elif opt.mode == "GAN":
         if opt.decoder == 1:
-            GEN = GGGAN.Generator()
-            DIS = GGGAN.Discriminator()
+            GEN = AttnUNET.Generator()
+            DIS = AttnUNET.Discriminatorv2()
             T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
             T.train()
         else:

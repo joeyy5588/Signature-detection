@@ -108,19 +108,22 @@ class SINGLEGANTrainer:
         fake_hw = self.gen(origin_img)
         fake_hw = fake_hw.detach()
 
-        fake_img = torch.cat((origin_img, fake_hw), dim=1)
-        real_img = torch.cat((origin_img, hw_img), dim=1)
-        #print(fake_hw.size(), fake_img.size())
+        # fake_img = torch.cat((origin_img, fake_hw), dim=1)
+        # real_img = torch.cat((origin_img, hw_img), dim=1)
+        white_img = torch.zeros(origin_img.size())
+        # print(fake_hw.size(), fake_img.size())
 
-        real_predict = self.dis(real_img)
-        fake_predict = self.dis(fake_img)
+        real_predict = self.dis(hw_img, origin_img)
+        fake_predict = self.dis(fake_hw, origin_img)
+        white_predict = self.dis(white_img, origin_img)
 
         real_loss = self._GAN_loss(real_predict, True)
         fake_loss = self._GAN_loss(fake_predict, False)
+        white_loss = self._GAN_loss(white_predict, False)
         D_x = real_predict.mean().item()
         D_G_z1 = fake_predict.mean().item()
 
-        loss_d = (real_loss + fake_loss) / 2
+        loss_d = (real_loss + fake_loss + white_loss) / 3
         loss_d.backward()
         self.dis_optimizer.step()
 
@@ -131,14 +134,12 @@ class SINGLEGANTrainer:
 
         fake_hw = self.gen(origin_img)
 
-        fake_img = torch.cat((origin_img, fake_hw), dim=1)
-        fake_predict = self.dis(fake_img)
+        # fake_img = torch.cat((origin_img, fake_hw), dim=1)
+        fake_predict = self.dis(fake_hw, origin_img)
 
         gen_loss = self._GAN_loss(fake_predict, True)
-        hw_loss = self._RECONSTRUCT_loss(fake_hw, hw_img, pt_img)
-        print(gen_loss.item(), hw_loss.item())
 
-        loss_g = gen_loss + hw_loss
+        loss_g = gen_loss
 
         D_G_z2 = fake_predict.mean().item()
         loss_g.backward()
