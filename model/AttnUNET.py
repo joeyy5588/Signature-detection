@@ -12,10 +12,10 @@ class Generator(nn.Module):
         self.down3 = down(256, 512)
         self.down4 = down(512, 512)
         self.down5 = down(512, 512)
-        self.up1_1 = up(1024, 256, False)
-        self.up1_2 = up(512, 128, False)
-        self.up1_3 = up(256, 64, False)
-        self.up1_4 = up(128, 64, False)
+        self.up1_1 = up(1024, 256)
+        self.up1_2 = up(512, 128)
+        self.up1_3 = up(256, 64)
+        self.up1_4 = up(128, 64)
         self.out1_c = outconv(64, n_classes)
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -39,7 +39,7 @@ class Generator(nn.Module):
         return x, p1, p2, p3, p4
 
 class Discriminator(nn.Module):
-    def __init__(self, n_channels=2, n_classes=1):
+    def __init__(self, n_channels=1, n_classes=1):
         super(Discriminator, self).__init__()
 
         self.model = nn.Sequential(
@@ -79,7 +79,7 @@ class Discriminator(nn.Module):
 
 class Discriminatorv2(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
-        super(Discriminator, self).__init__()
+        super(Discriminatorv2, self).__init__()
 
         self.model = nn.Sequential(
             nn.utils.spectral_norm(nn.Conv2d(n_channels, 64, kernel_size=4, stride=2, padding=1)),
@@ -224,7 +224,7 @@ class down(nn.Module):
 
 
 class up(nn.Module):
-    def __init__(self, in_ch, out_ch, bilinear=True):
+    def __init__(self, in_ch, out_ch, bilinear=True, use_attn=True):
         super(up, self).__init__()
 
         #  would be a nice idea if the upsampling could be learned too,
@@ -236,6 +236,7 @@ class up(nn.Module):
 
         self.conv = double_conv(in_ch, out_ch)
         self.attn = Self_Attn(in_ch//2, 'relu')
+        self.use_attn = use_attn
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
@@ -247,7 +248,8 @@ class up(nn.Module):
         x1 = F.pad(x1, (diffX // 2, diffX - diffX//2,
                         diffY // 2, diffY - diffY//2))
 
-        x2, p = self.attn(x1, x2)
+        if self.use_attn:
+            x2, p = self.attn(x1, x2)
         
         # for padding issues, see 
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
@@ -255,7 +257,9 @@ class up(nn.Module):
 
         x = torch.cat([x2, x1], dim=1)
         x = self.conv(x)
-        return x, p
+        if self.use_attn:
+            return x, p
+        return x
 
 
 class outconv(nn.Module):
