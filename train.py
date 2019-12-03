@@ -1,6 +1,6 @@
 from loader import DataLoader
 from model import GGGAN, GGGGAN, SNDIS, ResDense, AttnUNET
-from trainer import GGGANTrainer, SINGLEGANTrainer, UNETTrainer
+from trainer import GGGANTrainer, SINGLEGANTrainer, UNETTrainer, UNETATTNTrainer
 from utils import ensure_dir
 import logging
 import argparse
@@ -12,7 +12,7 @@ logger = logging.getLogger()
 parser = argparse.ArgumentParser()
 parser.add_argument('--n_epochs', type=int, default=100)
 parser.add_argument('--save_dir', type=str, default='saved/')
-parser.add_argument('--batch', type=int, default=1)
+parser.add_argument('--batch', type=int, default=8)
 parser.add_argument('--lr', type=float, default=0.0002)
 parser.add_argument('--checkpoint', type=str, default=None)
 parser.add_argument('--decoder', type=int, help='num of decoder', default=1)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     elif opt.mode == "GAN":
         if opt.decoder == 1:
             GEN = AttnUNET.Generator()
-            DIS = AttnUNET.Discriminatorv2()
+            DIS = GGGAN.Discriminator()
             T = SINGLEGANTrainer(gen = GEN, dis = DIS, dataloader = D, opt = opt)
             T.train()
         else:

@@ -11,11 +11,11 @@ class Generator(nn.Module):
         self.down2 = down(128, 256)
         self.down3 = down(256, 512)
         self.down4 = down(512, 512)
-        self.down5 = down(512, 512)
+        self.attn = Self_Attn(512, 'relu')
         self.up1_1 = up(1024, 256)
         self.up1_2 = up(512, 128)
-        self.up1_3 = up(256, 64)
-        self.up1_4 = up(128, 64)
+        self.up1_3 = up(256, 64, True, False)
+        self.up1_4 = up(128, 64, True, False)
         self.out1_c = outconv(64, n_classes)
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -23,20 +23,26 @@ class Generator(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
-    def forward(self, x):
+    def forward(self, x, y):
+        # y = query image
         x1 = self.inc(x)
         x2 = self.down1(x1)
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)
-        x5 = self.down5(x5)
-        x, p1 = self.up1_1(x5, x4)
-        x, p2 = self.up1_2(x, x3)
-        x, p3 = self.up1_3(x, x2)
-        x, p4 = self.up1_4(x, x1)
+        y1 = self.inc(y)
+        y2 = self.down1(y1)
+        y3 = self.down2(y2)
+        y4 = self.down3(y3)
+        y5 = self.down4(y4)
+        x5, p0 = self.attn(y5, x5)
+        x, p1 = self.up1_1(x5, x4, y4)
+        x, p2 = self.up1_2(x, x3, y3)
+        x = self.up1_3(x, x2, y2)
+        x = self.up1_4(x, x1, y1)
         x = self.out1_c(x)
         x = torch.tanh(x)
-        return x, p1, p2, p3, p4
+        return x
 
 class Discriminator(nn.Module):
     def __init__(self, n_channels=1, n_classes=1):
@@ -92,7 +98,7 @@ class Discriminatorv2(nn.Module):
             nn.LeakyReLU(0.2, inplace=True)
         )
         self.attn1 = Self_Attn(512, 'relu')
-        self.conv5 = nn.Conv2d(512, n_classes, kernel_size=4, stride=2, padding=1)
+        self.conv5 = nn.Conv2d(1024, n_classes, kernel_size=4, stride=2, padding=1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -104,14 +110,15 @@ class Discriminatorv2(nn.Module):
             #    if m.bias is not None:
             #        m.bias.data.zero_()
 
-    def forward(self, syn_img, origin_img):
+    def forward(self, syn_img, origin_img, q_img):
         syn_out = self.model(syn_img)
         origin_out = self.model(origin_img)
-        out, p1 = self.attn1(syn_out, origin_out)
+        q_out = self.model(q_img)
+        out, p1 = self.attn1(q_out, origin_out)
+        out = torch.cat((out, syn_out), axis = 1)
         out = self.conv5(out)
-        print(out.size())
 
-        return out.squeeze(), p1
+        return out.squeeze()
         
 
 class Self_Attn(nn.Module):
@@ -130,7 +137,7 @@ class Self_Attn(nn.Module):
     def forward(self, x, y):
         """
             inputs :
-                x : input feature maps( B X C X W X H)
+                x : input feature maps( B X C X W X H) query image fmap
             returns :
                 out : self attention value + input feature 
                 attention: B X N X N (N is Width*Height)
@@ -145,7 +152,7 @@ class Self_Attn(nn.Module):
         out = torch.bmm(proj_value,attention.permute(0,2,1) )
         out = out.view(m_batchsize,C,width,height)
         
-        out = self.gamma*out + x
+        out = self.gamma*out + y
         return out,attention
 
 
@@ -238,7 +245,7 @@ class up(nn.Module):
         self.attn = Self_Attn(in_ch//2, 'relu')
         self.use_attn = use_attn
 
-    def forward(self, x1, x2):
+    def forward(self, x1, x2, y):
         x1 = self.up(x1)
         
         # input is CHW
@@ -249,7 +256,7 @@ class up(nn.Module):
                         diffY // 2, diffY - diffY//2))
 
         if self.use_attn:
-            x2, p = self.attn(x1, x2)
+            x2, p = self.attn(y, x2)
         
         # for padding issues, see 
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
